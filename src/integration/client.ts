@@ -48,7 +48,9 @@ export class IntegrationClient {
           "Content-Type": "application/json",
           Accept: "application/json",
           [TRACE_HEADER]: traceId,
-          [API_KEY_HEADER]: this.config.integrationApiKey,
+          ...(this.config.integrationApiKey
+            ? { [API_KEY_HEADER]: this.config.integrationApiKey }
+            : {}),
         },
         body: JSON.stringify(body),
       });

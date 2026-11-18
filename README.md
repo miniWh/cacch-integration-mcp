@@ -22,7 +22,7 @@
 
 ```bash
 cp .env.example .env
-# 配置 MCP_AUTH_TOKEN、INTEGRATION_BASE_URL、INTEGRATION_API_KEY
+# 配置 MCP_AUTH_TOKEN、INTEGRATION_BASE_URL（INTEGRATION_API_KEY 仅在中台需要时配置）
 
 npm install
 npm run dev
@@ -37,7 +37,7 @@ MCP 端点：`POST /mcp`（需 `Authorization: Bearer <MCP_AUTH_TOKEN>`）
 |------|------|------|
 | `MCP_AUTH_TOKEN` | 是 | Client 访问 MCP 的 Bearer Token |
 | `INTEGRATION_BASE_URL` | 是 | 中台根地址 |
-| `INTEGRATION_API_KEY` | 是 | 调中台 API Key |
+| `INTEGRATION_API_KEY` | 否 | 中台需 X-Api-Key 时配置；否则可不设 |
 | `MCP_PORT` | 否 | 默认 `3100` |
 | `MCP_HOST` | 否 | 默认 `0.0.0.0` |
 | `MCP_PATH` | 否 | 默认 `/mcp` |

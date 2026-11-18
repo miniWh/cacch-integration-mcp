@@ -57,7 +57,7 @@
 
 - `POST {INTEGRATION_BASE_URL}/api/v1/crm/employees/query-by-id`
 - Body：`{"employeeId":"<id>"}`
-- Header：`X-Trace-Id`、`X-Api-Key`（按 MCP 部署约定）、`Content-Type: application/json`
+- Header：`X-Trace-Id`、`Content-Type: application/json`；中台需 API Key 时再配 `X-Api-Key`（环境变量 `INTEGRATION_API_KEY`）
 
 ## 验收对照
 
@@ -80,6 +80,5 @@ npm run dev
 curl -s -X POST "%INTEGRATION_BASE_URL%/api/v1/crm/employees/query-by-id" \
   -H "Content-Type: application/json" \
   -H "X-Trace-Id: manual-test-001" \
-  -H "X-Api-Key: %INTEGRATION_API_KEY%" \
   -d "{\"employeeId\":\"<勤策员工ID>\"}"
 ```

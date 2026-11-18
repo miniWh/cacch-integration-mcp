@@ -11,8 +11,8 @@ export interface AppConfig {
   mcpAuthToken: string;
   /** 集成中台 base URL，无尾斜杠 */
   integrationBaseUrl: string;
-  /** 调用中台时携带的 API Key（中台 ApiKey 过滤器落地后生效） */
-  integrationApiKey: string;
+  /** 调用中台时携带的 API Key；未配置则不发送 X-Api-Key（与中台无鉴权/网关前置场景一致） */
+  integrationApiKey?: string;
   /** 绑定 0.0.0.0 时允许的 Host 头，未配置则不限制 */
   mcpAllowedHosts?: string[];
 }
@@ -41,7 +41,8 @@ export function loadConfig(): AppConfig {
     mcpPath: process.env.MCP_PATH?.trim() || "/mcp",
     mcpAuthToken: requireEnv("MCP_AUTH_TOKEN"),
     integrationBaseUrl: requireEnv("INTEGRATION_BASE_URL").replace(/\/+$/, ""),
-    integrationApiKey: requireEnv("INTEGRATION_API_KEY"),
+    integrationApiKey:
+      process.env.INTEGRATION_API_KEY?.trim() || undefined,
     ...(allowedHosts && allowedHosts.length > 0
       ? { mcpAllowedHosts: allowedHosts }
       : {}),

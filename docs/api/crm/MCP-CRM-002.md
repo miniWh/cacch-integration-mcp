@@ -55,6 +55,5 @@
 curl -s -X POST "%INTEGRATION_BASE_URL%/api/v1/crm/employees/query" \
   -H "Content-Type: application/json" \
   -H "X-Trace-Id: manual-test-002" \
-  -H "X-Api-Key: %INTEGRATION_API_KEY%" \
   -d "{\"empCode\":\"zhangsan\"}"
 ```
