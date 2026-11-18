@@ -1,0 +1,59 @@
+---
+description: 代码改动完成后输出中文 Commit 文案（Conventional Commits），禁止自动提交
+alwaysApply: true
+---
+
+# Commit 信息输出（实施收尾）
+
+完成**有文件变更**的实施且通过 ③ 自检后，在回复**末尾**单独给出「建议 Commit」，供用户自行 `git commit`。**不得**执行 `git commit` / `git push`，除非用户明确要求。
+
+## 格式（Conventional Commits + 中文表述）
+
+```
+<type>(<scope>): <中文 subject>
+
+<中文 body 可选，1–3 句，说明为什么改、与验收点>
+```
+
+| type | 用途 |
+|------|------|
+| `feat` | 新 Tool、新能力、对外行为变化 |
+| `fix` | 缺陷修复 |
+| `docs` | 仅文档 / 规则 |
+| `refactor` | 行为不变的重构 |
+| `chore` | 构建、依赖、工程配置 |
+| `test` | 测试 |
+
+- **type**：保留英文缩写（工具链通用）。
+- **scope**：可选，中文或英文均可，如 `规则`、`mcp`、`integration`。
+- **subject**：**必须中文**；祈使语气（如「增加…」「修复…」），≤72 字，标题行不以句号结尾。
+- **body**：若有，**必须中文**；写动机、影响，不堆砌文件名。
+
+### 示例
+
+```
+docs(规则): 规定 Commit 标题与正文使用中文
+
+与工作流收尾一致，便于团队阅读历史记录。
+```
+
+## 输出模板（Agent 照此块给用户）
+
+```markdown
+### 建议 Commit
+
+\`\`\`
+<type>(<scope>): <中文 subject>
+
+<中文 body>
+\`\`\`
+
+涉及文件：<简短列表或「见本次改动」>
+```
+
+## 禁止
+
+- 未经用户说「提交 / commit」时，**不要** `git add`、`git commit`、`git push`。
+- Commit 文案中不得包含密钥、token、`.env` 内容。
+- 无实质代码/文档改动时，不编造 Commit 建议。
+- **subject / body 不得使用英文**（type 缩写除外）。

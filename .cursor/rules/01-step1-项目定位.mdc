@@ -1,0 +1,39 @@
+---
+description: 【三步走-①】项目定位、架构边界与扩展方式
+alwaysApply: true
+---
+
+# ① 项目定位
+
+> 交互默认：**需求转译 → 确认方案 → 写代码 → 输出 Commit 文案（不自动提交）**（`00-workflow-…`、`04-commit-…`）。  
+> 质量三部曲：**① 定位** → **② 行业标准**（`02-step2-行业开发标准.mdc`）→ **③ 约束**（`03-step3-代码质量约束.mdc`）。
+
+## 是什么 / 不是什么
+
+| 是 | 不是 |
+|----|------|
+| 勤策 CRM 能力的 **MCP Server**（Streamable HTTP） | 集成中台本体、Spring Boot 业务服务 |
+| 远程 Agent 的 **协议适配 + BFF** | 直连勤策 OpenAPI 的服务 |
+| 经 **HTTPS + API Key** 转发中台 REST | 在 Tool 里持有勤策 `open-id` / `app-key` |
+
+数据流：`Agent → Bearer MCP → 本服务 → X-Api-Key 中台 → 勤策`。
+
+## 演进策略（与企业集成主流一致）
+
+- **试点先行**：一期「单 Tool + 单中台接口」验证后再叠加以 Tool。
+- **密钥不出中台**：MCP 层只见中台契约与裁剪后的 VO，不见勤策原始密钥。
+- **文档编号**：每个 Tool 对应 `docs/api/crm/MCP-CRM-XXX.md`。
+
+## 目录职责（禁止跨层写逻辑）
+
+| 路径 | 职责 |
+|------|------|
+| `src/index.ts` | HTTP、Streamable HTTP、`/health` |
+| `src/http/` | MCP 入口 Bearer 鉴权 |
+| `src/config/env.ts` | 环境变量与启动校验 |
+| `src/mcp/server.ts` | 仅注册 Tool |
+| `src/mcp/tools/` | 一文件一 Tool：`registerXxxTool` |
+| `src/integration/` | 中台客户端、类型、解析 |
+| `src/mcp/envelope.ts` | Tool 统一 JSON 外壳 |
+
+新增 Tool 时同步：`server.ts` 注册、新文档、`README` 目录说明、中台路径常量。

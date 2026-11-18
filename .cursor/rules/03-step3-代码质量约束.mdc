@@ -1,0 +1,49 @@
+---
+description: 【三步走-③】可执行代码与文档约束（保障质量）
+alwaysApply: true
+---
+
+# ③ 代码质量约束（MUST）
+
+与 **① 定位**、**② 标准** 冲突时，以本节 MUST 为准。
+
+## TypeScript
+
+- 禁止无故 `any`；外部 JSON 解析后立即窄化。
+- `node:` 内置模块前缀；`IntegrationClient` 构造注入 `AppConfig`。
+- 常量 `SCREAMING_SNAKE`；Tool 名 `snake_case`；文件 `camelCase.ts`。
+- 用户可见 `message` 中文；`code` 英文大写。
+
+## MCP Tool（`src/mcp/**`）
+
+- 单文件：`TOOL_NAME`、`TOOL_DESCRIPTION`、`registerXxxTool(server, integration)`。
+- 入参 **Zod** + `.describe()`；校验失败 → `envelopeFail` + `isError: true`，**不 throw**。
+- 结果一律 `envelopeOk` / `envelopeFail` + `envelopeToJsonText`；成功不带 `isError`。
+- 每次调用 `traceId = crypto.randomUUID()`，传入 `IntegrationClient`。
+- 判断顺序：中台 `code` → 勤策 `return_code` → 解析员工摘要；禁止返回完整 `CrmOpenApiResponse`。
+
+```typescript
+// ✅ 失败返回
+return { content: [{ type: "text", text: envelopeToJsonText(body) }], isError: true };
+```
+
+- `createMcpServer` 仅 `new McpServer` + 注册 Tool，不写 fetch/业务分支。
+
+## 集成与安全（`integration` / `http` / `config`）
+
+- 密钥只来自 `loadConfig()`；禁止硬编码与日志打印 `INTEGRATION_API_KEY`、完整 `Authorization`。
+- `mcpPath` 必须挂 `mcpBearerAuth`；401 简短中文。
+- 中台：`POST` + `X-Trace-Id` + `X-Api-Key`；`integrationBaseUrl` 无尾斜杠；路径常量在 client 内。
+- 网络/HTTP 异常 → `IntegrationHttpError`（含 `traceId`）；`index.ts` 未捕获 → JSON-RPC `-32603`，响应无栈。
+
+## 文档（`docs/api/crm/*.md`）
+
+- 含：Tool 名、中台路径、入参、envelope 字段、常见 `code`、验收点。
+- 与 `crmQueryEmployeeById.ts` / `client.ts` 行为保持一致。
+
+## 提交前自检（AI 完成改动后默认执行）
+
+1. `npm run typecheck`
+2. `npm run build`
+3. 若新增 Tool：文档 + `README` + `server.ts` 均已更新
+4. 输出 **建议 Commit**（`04-commit-提交信息输出.mdc`）；**禁止**未经用户要求执行 `git commit` / `git push`

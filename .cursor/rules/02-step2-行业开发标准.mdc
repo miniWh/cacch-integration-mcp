@@ -1,0 +1,50 @@
+---
+description: 【三步走-②】MCP/Node 集成类服务的行业主流开发标准
+alwaysApply: true
+---
+
+# ② 行业开发标准（对照本技术栈）
+
+本节是「应然标准」；具体 MUST/禁止见 **③**。
+
+## 协议与产品形态
+
+- 采用 **MCP 官方 SDK**，远程传输 **Streamable HTTP**（`POST /mcp`）。
+- Tool **`snake_case`**，描述面向 LLM：**何时用 / 何时不用**（中文）。
+- HTTP 鉴权与 MCP 业务分离：先过 Bearer，再进 JSON-RPC。
+
+## TypeScript / Node 工程
+
+- **`strict: true`**，ESM + `NodeNext`，相对路径 **`.js` 后缀**。
+- 运行配置 **环境变量 + 启动期 fail-fast**（缺配置即退出），不用静默默认值藏密钥。
+- 交付：`npm run build` 产物进 `dist/`；容器用多阶段或仅跑 `dist`（不把 `.env` 烤进镜像）。
+
+## 分层与集成
+
+- **BFF 三层**：传输鉴权 → MCP Tool → 集成 HTTP Client（对齐本仓库目录）。
+- 对外 REST 调用：`fetch` + 明确超时策略（后续可补）、`text()` 再 parse，区分 **HTTP / 平台 Result / 业务 return_code**。
+- 与中台 **字段名一致**（Java DTO camelCase）；MCP 入参可用 snake_case 再映射。
+
+## 安全基线
+
+- 对外 **Bearer**；对内 **API Key** 仅服务端 Header。
+- Token 比较 **timing-safe**；错误响应与 envelope **不含密钥片段**。
+- `.env.example` 可提交，真实 `.env` 永不入库。
+
+## Agent 体验与可观测
+
+- Tool 输出 **小而稳**：统一 `{ success, code, message, data }`，禁止巨型原始 JSON。
+- 全链路 **`X-Trace-Id`**（MCP 生成 UUID），便于与中台日志关联。
+- 稳定机器可读 `code`（如 `PLATFORM_*`、`CRM_BUSINESS_ERROR`）。
+
+## 质量门禁（行业常见；本仓逐步补齐）
+
+| 门禁 | 现状建议 |
+|------|----------|
+| `npm run typecheck` | 每次改 TS 必跑 |
+| `npm run build` | 合入前必跑 |
+| ESLint + Prettier | 新增时与 `strict` 对齐 |
+| 单测（解析/客户端 mock fetch） | 新逻辑优先补 |
+| CI | push 跑 typecheck + build |
+
+AI 改代码时默认按上表「建议」执行；若用户未要求，不擅自引入大量新依赖。
