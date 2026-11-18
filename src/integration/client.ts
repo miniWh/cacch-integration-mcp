@@ -1,10 +1,17 @@
 import type { AppConfig } from "../config/env.js";
-import { parsePlatformResult } from "./platformParse.js";
-import type { CrmOpenApiResponse, PlatformResult } from "./types.js";
+import { parsePlatformEmployeeResult } from "./platformParse.js";
+import type { CrmEmployeeVO, PlatformResult } from "./types.js";
 
-const EMPLOYEE_QUERY_BY_ID_PATH = "/api/v1/crm/open-api/employees/query-by-id";
+const EMPLOYEE_QUERY_BY_ID_PATH = "/api/v1/crm/employees/query-by-id";
+const EMPLOYEE_QUERY_PATH = "/api/v1/crm/employees/query";
 const TRACE_HEADER = "X-Trace-Id";
 const API_KEY_HEADER = "X-Api-Key";
+
+export interface CrmEmployeeQueryBody {
+  id?: string;
+  empId?: string;
+  empCode?: string;
+}
 
 export class IntegrationClient {
   constructor(private readonly config: AppConfig) {}
@@ -12,8 +19,27 @@ export class IntegrationClient {
   async queryEmployeeById(
     employeeId: string,
     traceId: string,
-  ): Promise<PlatformResult<CrmOpenApiResponse>> {
-    const url = `${this.config.integrationBaseUrl}${EMPLOYEE_QUERY_BY_ID_PATH}`;
+  ): Promise<PlatformResult<CrmEmployeeVO | null>> {
+    return this.postEmployeeApi(
+      EMPLOYEE_QUERY_BY_ID_PATH,
+      { employeeId },
+      traceId,
+    );
+  }
+
+  async queryEmployee(
+    query: CrmEmployeeQueryBody,
+    traceId: string,
+  ): Promise<PlatformResult<CrmEmployeeVO | null>> {
+    return this.postEmployeeApi(EMPLOYEE_QUERY_PATH, query, traceId);
+  }
+
+  private async postEmployeeApi(
+    path: string,
+    body: { employeeId: string } | CrmEmployeeQueryBody,
+    traceId: string,
+  ): Promise<PlatformResult<CrmEmployeeVO | null>> {
+    const url = `${this.config.integrationBaseUrl}${path}`;
     let response: Response;
     try {
       response = await fetch(url, {
@@ -24,7 +50,7 @@ export class IntegrationClient {
           [TRACE_HEADER]: traceId,
           [API_KEY_HEADER]: this.config.integrationApiKey,
         },
-        body: JSON.stringify({ employeeId }),
+        body: JSON.stringify(body),
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -45,9 +71,9 @@ export class IntegrationClient {
       );
     }
 
-    let parsed: PlatformResult<CrmOpenApiResponse>;
+    let parsed: PlatformResult<CrmEmployeeVO | null>;
     try {
-      parsed = parsePlatformResult(raw);
+      parsed = parsePlatformEmployeeResult(raw);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       throw new IntegrationHttpError(message, traceId);
@@ -69,7 +95,7 @@ export class IntegrationHttpError extends Error {
   constructor(
     message: string,
     readonly traceId: string,
-    readonly platformResult?: PlatformResult<CrmOpenApiResponse>,
+    readonly platformResult?: PlatformResult<CrmEmployeeVO | null>,
   ) {
     super(message);
     this.name = "IntegrationHttpError";

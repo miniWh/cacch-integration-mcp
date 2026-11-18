@@ -1,32 +1,49 @@
 import * as z from "zod";
-import type { CrmOpenApiResponse, PlatformResult } from "./types.js";
+import type { CrmEmployeeVO, PlatformResult } from "./types.js";
 
-const crmOpenApiResponseSchema = z
-  .object({
-    return_code: z.string().optional(),
-    return_msg: z.string().optional(),
-    msg_id: z.string().optional(),
-    response_data: z.unknown().optional(),
-  })
-  .passthrough();
+const crmEmployeeVoSchema = z.object({
+  id: z.string(),
+  empId: z.string().nullish(),
+  empCode: z.string().nullish(),
+  empName: z.string().nullish(),
+  mobile: z.string().nullish(),
+  status: z.string().nullish(),
+});
 
-const platformResultSchema: z.ZodType<PlatformResult<CrmOpenApiResponse>> =
-  z.object({
-    code: z.number(),
-    message: z.string(),
-    data: z.union([crmOpenApiResponseSchema, z.null()]),
-  });
+const platformEmployeeResultSchema = z.object({
+  code: z.number(),
+  message: z.string(),
+  data: z.union([crmEmployeeVoSchema, z.null()]),
+});
 
-/** 将中台 JSON 窄化为 PlatformResult，结构不符时抛出含 issues 的 Error */
-export function parsePlatformResult(
+function normalizeEmployeeVo(
+  raw: z.infer<typeof crmEmployeeVoSchema>,
+): CrmEmployeeVO {
+  return {
+    id: raw.id,
+    empId: raw.empId ?? null,
+    empCode: raw.empCode ?? null,
+    empName: raw.empName ?? null,
+    mobile: raw.mobile ?? null,
+    status: raw.status ?? null,
+  };
+}
+
+/** 将中台 JSON 窄化为员工查询 Result，结构不符时抛出 Error */
+export function parsePlatformEmployeeResult(
   body: unknown,
-): PlatformResult<CrmOpenApiResponse> {
-  const result = platformResultSchema.safeParse(body);
+): PlatformResult<CrmEmployeeVO | null> {
+  const result = platformEmployeeResultSchema.safeParse(body);
   if (!result.success) {
     const detail = result.error.issues
       .map((issue) => issue.message)
       .join("; ");
     throw new Error(`中台返回结构不符合约定: ${detail}`);
   }
-  return result.data;
+  const { code, message, data } = result.data;
+  return {
+    code,
+    message,
+    data: data === null ? null : normalizeEmployeeVo(data),
+  };
 }

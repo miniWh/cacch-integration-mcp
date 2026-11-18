@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { IntegrationClient } from "../integration/client.js";
 import { registerCrmQueryEmployeeByIdTool } from "./tools/crmQueryEmployeeById.js";
+import { registerCrmQueryEmployeeTool } from "./tools/crmQueryEmployee.js";
 
 export function createMcpServer(integration: IntegrationClient): McpServer {
   const server = new McpServer(
@@ -16,5 +17,6 @@ export function createMcpServer(integration: IntegrationClient): McpServer {
   );
 
   registerCrmQueryEmployeeByIdTool(server, integration);
+  registerCrmQueryEmployeeTool(server, integration);
   return server;
 }

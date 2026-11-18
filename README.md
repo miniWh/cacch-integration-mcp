@@ -1,16 +1,21 @@
 # cacch-integration-mcp
 
-勤策 CRM 能力的 **MCP Server**（Streamable HTTP），供远程 Agent 调用；业务请求转发至集成中台 REST，勤策密钥不离开中台。
+勤策 CRM 能力的 **MCP Server**（Streamable HTTP），供远程 Agent 调用；业务请求转发至集成中台**产品化** REST（`/api/v1/crm/employees/*`），勤策密钥不离开中台。
 
-首期仅注册一个 Tool：`crm_query_employee_by_id`。
+## 已注册 Tool
+
+| Tool | 说明 | 文档 |
+|------|------|------|
+| `crm_query_employee_by_id` | 按勤策员工 ID 查询 | [MCP-CRM-001](docs/api/crm/MCP-CRM-001.md) |
+| `crm_query_employee` | 按 id / emp_id / emp_code 组合查询 | [MCP-CRM-002](docs/api/crm/MCP-CRM-002.md) |
 
 ## 架构
 
 ```
 远程 Agent (MCP Client)
   → HTTPS + Bearer MCP_AUTH_TOKEN → 本服务 (Streamable HTTP /mcp)
-    → HTTPS + X-Api-Key → 集成中台 POST .../employees/query-by-id
-      → 勤策 OpenAPI
+    → HTTPS + X-Api-Key → 集成中台 POST /api/v1/crm/employees/*
+      → 勤策 OpenAPI（仅中台内部）
 ```
 
 ## 快速开始
@@ -38,22 +43,21 @@ MCP 端点：`POST /mcp`（需 `Authorization: Bearer <MCP_AUTH_TOKEN>`）
 | `MCP_PATH` | 否 | 默认 `/mcp` |
 | `MCP_ALLOWED_HOSTS` | 否 | 逗号分隔 Host 白名单（`0.0.0.0` 绑定时可选） |
 
-详细说明见 [docs/api/crm/MCP-CRM-001.md](docs/api/crm/MCP-CRM-001.md)。
-
 ## 目录
 
 ```
 src/
-  index.ts                 # HTTP 入口 + Streamable HTTP
+  index.ts
   config/env.ts
-  http/mcpAuth.ts          # MCP Bearer 鉴权
+  http/mcpAuth.ts
   integration/client.ts
   integration/platformParse.ts
-  integration/employeeParse.ts
   integration/types.ts
+  mcp/crmEmployeePlatform.ts
   mcp/envelope.ts
   mcp/server.ts
   mcp/tools/crmQueryEmployeeById.ts
+  mcp/tools/crmQueryEmployee.ts
 ```
 
 ## Docker
@@ -66,11 +70,11 @@ docker run --rm -p 3100:3100 --env-file .env cacch-integration-mcp
 ## 开发
 
 ```bash
-npm run build   # 编译到 dist/
-npm start       # 运行编译产物
+npm run build
+npm start
 ```
 
 ## 关联中台代码
 
-- `CrmOpenApiController#queryEmployeeById`
-- `ICrmOpenApiService#queryEmployeeById`
+- `CrmEmployeeController` — `/api/v1/crm/employees/query-by-id`、`/query`
+- 接口说明：`cacch-integration-platform/docs/api/crm/crm-employee-query-api.md`

@@ -5,18 +5,15 @@ export interface PlatformResult<T> {
   data: T | null;
 }
 
-/** 勤策 OpenAPI 响应（挂载在中台 Result.data 上） */
-export interface CrmOpenApiResponse {
-  return_code?: string;
-  return_msg?: string;
-  msg_id?: string;
-  response_data?: unknown;
+/** 中台 CrmEmployeeVO（对外产品化接口 data） */
+export interface CrmEmployeeVO {
+  id: string;
+  empId: string | null;
+  empCode: string | null;
+  empName: string | null;
+  mobile: string | null;
+  status: string | null;
 }
 
-/** 精简后的员工信息，供 MCP 返回 */
-export interface CrmEmployeeSummary {
-  employee_id: string;
-  emp_code: string | null;
-  emp_id: string | null;
-  emp_name: string | null;
-}
+/** MCP 成功时 data：员工 VO + 链路 ID */
+export type CrmEmployeeToolData = CrmEmployeeVO & { trace_id: string };
